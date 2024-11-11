@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Scanner;
 
 class MinHeap {
     private ArrayList<Integer> heap;
@@ -12,7 +13,6 @@ class MinHeap {
         heap.add(value); // Agregar el valor al final
         System.out.println("Insertando " + value);
         heapifyUp(heap.size() - 1); // Acomodar el valor hacia arriba
-        printHeap();
     }
 
     // Obtener el valor mínimo (raíz)
@@ -39,8 +39,7 @@ class MinHeap {
         } else {
             System.out.println("Eliminando el mínimo " + min);
         }
-
-        printHeap();
+        
         return min;
     }
 
@@ -48,13 +47,13 @@ class MinHeap {
     private void heapifyUp(int index) {
         while (index > 0) {
             int parentIndex = (index - 1) / 2;
+            System.out.println("Comparando " + heap.get(index) + " con su padre " + heap.get(parentIndex));
             if (heap.get(index) >= heap.get(parentIndex)) {
                 break; // Si el valor es mayor que el padre, detenerse
             }
-            System.out.println("Intercambiando " + heap.get(index) + " con el padre " + heap.get(parentIndex));
             swap(index, parentIndex); // Intercambiar con el padre
+            printHeap(); // Mostrar el estado del heap después de cada intercambio
             index = parentIndex; // Actualizar el índice
-            printHeap();
         }
     }
 
@@ -67,20 +66,25 @@ class MinHeap {
             rightChild = 2 * index + 2;
             minIndex = index;
 
+            // Comparar con el hijo izquierdo
+            System.out.println("Comparando " + heap.get(index) + " con su hijo izquierdo " + heap.get(leftChild));
             if (leftChild < heap.size() && heap.get(leftChild) < heap.get(minIndex)) {
                 minIndex = leftChild;
             }
+
+            // Comparar con el hijo derecho
+            System.out.println("Comparando " + heap.get(index) + " con su hijo derecho " + heap.get(rightChild));
             if (rightChild < heap.size() && heap.get(rightChild) < heap.get(minIndex)) {
                 minIndex = rightChild;
             }
+
             if (minIndex == index) {
                 break; // Si el índice mínimo es el mismo, detener
             }
 
-            System.out.println("Intercambiando " + heap.get(index) + " con el hijo menor " + heap.get(minIndex));
             swap(index, minIndex); // Intercambiar con el hijo más pequeño
+            printHeap(); // Mostrar el estado del heap después de cada intercambio
             index = minIndex;
-            printHeap();
         }
     }
 
@@ -96,24 +100,47 @@ class MinHeap {
         System.out.println("Estado actual del heap: " + heap);
     }
 
+    // Método para construir el MinHeap a partir de una lista de enteros
+    public void buildMinHeap(ArrayList<Integer> list) {
+        for (int value : list) {
+            insert(value); // Inserta cada valor en el heap
+        }
+    }
+
+    // Método principal para leer la entrada del usuario y trabajar con el MinHeap
     public static void main(String[] args) {
-        MinHeap minHeap = new MinHeap();
+        Scanner scanner = new Scanner(System.in);
+
+        // Leer la lista de números del usuario
+        System.out.println("Ingrese los números para construir el MinHeap (separados por comas): ");
+        String input = scanner.nextLine();
         
-        // Insertar elementos en el heap
-        minHeap.insert(7);
-        minHeap.insert(3);
-        minHeap.insert(10);
-        minHeap.insert(2);
-        minHeap.insert(8);
-        minHeap.insert(5);
-        
-        // Obtener el valor mínimo
-        System.out.println("Valor mínimo (raíz): " + minHeap.getMin());
-        
-        // Eliminar el valor mínimo
-        System.out.println("Eliminando el mínimo: " + minHeap.removeMin());
-        
-        // Imprimir el heap después de eliminar el mínimo
-        minHeap.printHeap();
+        // Separar la entrada por comas
+        String[] inputArray = input.split(",");
+        ArrayList<Integer> numbers = new ArrayList<>();
+
+        // Convertir la entrada en una lista de números
+        try {
+            for (String num : inputArray) {
+                numbers.add(Integer.parseInt(num.trim())); // Eliminar espacios y convertir a enteros
+            }
+
+            // Crear el MinHeap
+            MinHeap minHeap = new MinHeap();
+            minHeap.buildMinHeap(numbers);
+
+            // Mostrar el valor mínimo
+            System.out.println("\nValor mínimo (raíz): " + minHeap.getMin());
+
+            // Eliminar el valor mínimo y mostrar los pasos de reorganización
+            System.out.println("\nEliminando el mínimo:");
+            minHeap.removeMin();
+            minHeap.printHeap();
+
+        } catch (NumberFormatException e) {
+            System.out.println("Error: Asegúrese de ingresar una lista de números válidos separados por comas.");
+        }
+
+        scanner.close();
     }
 }
