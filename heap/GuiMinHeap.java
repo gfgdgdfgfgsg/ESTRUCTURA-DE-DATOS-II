@@ -1,8 +1,115 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.util.ArrayList;
+
+public class MinHeapGUI extends JFrame {
+    private MinHeap minHeap;
+    private JTextArea heapDisplay;
+    private JTextField inputField;
+
+    public MinHeapGUI() {
+        // Configuración de la ventana principal
+        setTitle("MinHeap GUI");
+        setSize(600, 400);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        minHeap = new MinHeap();
+        heapDisplay = new JTextArea(10, 30);
+        heapDisplay.setEditable(false);
+        inputField = new JTextField(30);
+
+        // Crear panel para la entrada
+        JPanel inputPanel = new JPanel();
+        inputPanel.add(new JLabel("Inserta una lista de números separados por comas: "));
+        inputPanel.add(inputField);
+
+        // Crear botones
+        JButton insertButton = new JButton("Insertar Lista");
+        JButton clearButton = new JButton("Borrar");
+        JButton resetButton = new JButton("Reiniciar");
+
+        insertButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                insertList();
+            }
+        });
+
+        clearButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                clearHeap();
+            }
+        });
+
+        resetButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                resetHeap();
+            }
+        });
+
+        // Crear panel para los botones
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(insertButton);
+        buttonPanel.add(clearButton);
+        buttonPanel.add(resetButton);
+
+        // Panel para mostrar el estado del heap
+        JScrollPane scrollPane = new JScrollPane(heapDisplay);
+        JPanel displayPanel = new JPanel();
+        displayPanel.add(scrollPane);
+
+        // Organizar todo en el layout
+        setLayout(new BorderLayout());
+        add(inputPanel, BorderLayout.NORTH);
+        add(buttonPanel, BorderLayout.CENTER);
+        add(displayPanel, BorderLayout.SOUTH);
+    }
+
+    // Insertar lista en el MinHeap
+    private void insertList() {
+        String input = inputField.getText();
+        String[] inputArray = input.split(",");
+        ArrayList<Integer> numbers = new ArrayList<>();
+
+        try {
+            // Convertir la entrada en una lista de números
+            for (String num : inputArray) {
+                numbers.add(Integer.parseInt(num.trim())); // Eliminar espacios y convertir a enteros
+            }
+
+            // Construir el MinHeap
+            minHeap.buildMinHeap(numbers);
+
+            // Mostrar el estado final del heap
+            heapDisplay.setText("MinHeap después de insertar la lista:\n" + minHeap.getHeapState());
+
+        } catch (NumberFormatException e) {
+            heapDisplay.setText("Error: Asegúrese de ingresar una lista de números válidos separados por comas.");
+        }
+    }
+
+    // Borrar el heap
+    private void clearHeap() {
+        minHeap.clear();
+        heapDisplay.setText("Heap vacío. Realice una nueva inserción.");
+    }
+
+    // Reiniciar el heap
+    private void resetHeap() {
+        minHeap = new MinHeap();
+        heapDisplay.setText("Heap reiniciado. Realice una nueva inserción.");
+    }
+
+    public static void main(String[] args) {
+        // Crear y mostrar la GUI
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                new MinHeapGUI().setVisible(true);
+            }
+        });
+    }
+}
 
 class MinHeap {
     private ArrayList<Integer> heap;
@@ -11,43 +118,54 @@ class MinHeap {
         heap = new ArrayList<>();
     }
 
+    // Insertar un nuevo valor en el heap
     public void insert(int value) {
-        heap.add(value);
-        heapifyUp(heap.size() - 1);
+        heap.add(value); // Agregar el valor al final
+        heapifyUp(heap.size() - 1); // Acomodar el valor hacia arriba
     }
 
+    // Obtener el valor mínimo (raíz)
     public int getMin() {
-        if (heap.size() == 0) throw new IllegalStateException("El heap está vacío");
+        if (heap.size() == 0) {
+            throw new IllegalStateException("El heap está vacío");
+        }
         return heap.get(0);
     }
 
+    // Eliminar el valor mínimo (raíz) y reorganizar el heap
     public int removeMin() {
-        if (heap.size() == 0) throw new IllegalStateException("El heap está vacío");
+        if (heap.size() == 0) {
+            throw new IllegalStateException("El heap está vacío");
+        }
 
-        int min = heap.get(0);
-        int lastValue = heap.remove(heap.size() - 1);
+        int min = heap.get(0); // Obtener el valor mínimo
+        int lastValue = heap.remove(heap.size() - 1); // Remover el último valor
 
         if (heap.size() > 0) {
-            heap.set(0, lastValue);
-            heapifyDown(0);
+            heap.set(0, lastValue); // Colocar el último valor en la raíz
+            heapifyDown(0); // Acomodar el valor hacia abajo
         }
         
         return min;
     }
 
+    // Método para organizar el heap después de insertar un valor
     private void heapifyUp(int index) {
         while (index > 0) {
             int parentIndex = (index - 1) / 2;
-            if (heap.get(index) >= heap.get(parentIndex)) break;
-            swap(index, parentIndex);
-            index = parentIndex;
+            if (heap.get(index) >= heap.get(parentIndex)) {
+                break; // Si el valor es mayor que el padre, detenerse
+            }
+            swap(index, parentIndex); // Intercambiar con el padre
+            index = parentIndex; // Actualizar el índice
         }
     }
 
+    // Método para organizar el heap después de eliminar el mínimo
     private void heapifyDown(int index) {
         int leftChild, rightChild, minIndex;
 
-        while (index < heap.size() / 2) {
+        while (index < heap.size() / 2) { // Mientras tenga al menos un hijo
             leftChild = 2 * index + 1;
             rightChild = 2 * index + 2;
             minIndex = index;
@@ -58,139 +176,36 @@ class MinHeap {
             if (rightChild < heap.size() && heap.get(rightChild) < heap.get(minIndex)) {
                 minIndex = rightChild;
             }
-            if (minIndex == index) break;
+            if (minIndex == index) {
+                break; // Si el índice mínimo es el mismo, detener
+            }
 
-            swap(index, minIndex);
+            swap(index, minIndex); // Intercambiar con el hijo más pequeño
             index = minIndex;
         }
     }
 
+    // Método para intercambiar dos elementos en el heap
     private void swap(int i, int j) {
         int temp = heap.get(i);
         heap.set(i, heap.get(j));
         heap.set(j, temp);
     }
 
-    public ArrayList<Integer> getHeap() {
-        return heap;
+    // Método para imprimir el heap como una cadena (solo para visualizar)
+    public String getHeapState() {
+        return heap.toString();
     }
 
-    public void clearHeap() {
+    // Método para construir el MinHeap a partir de una lista de enteros
+    public void buildMinHeap(ArrayList<Integer> list) {
+        for (int value : list) {
+            insert(value); // Inserta cada valor en el heap
+        }
+    }
+
+    // Método para limpiar el heap
+    public void clear() {
         heap.clear();
-    }
-}
-
-public class MinHeapGUI extends JFrame {
-    private MinHeap minHeap = new MinHeap();
-    private JTextField inputField;
-    private JTextArea outputArea;
-    
-    public MinHeapGUI() {
-        setTitle("MinHeap GUI");
-        setSize(500, 400);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new BorderLayout());
-
-        JLabel instructions = new JLabel("<html>Instrucciones:<br>"
-            + "1. Ingrese un número en el campo de texto y haga clic en Insertar para añadirlo al heap.<br>"
-            + "2. Haga clic en Obtener Mínimo para ver el valor mínimo.<br>"
-            + "3. Haga clic en Eliminar Mínimo para eliminar el valor mínimo.<br>"
-            + "4. Haga clic en Borrar para limpiar la salida.<br>"
-            + "5. Haga clic en Reiniciar para restablecer el heap.<br></html>");
-        instructions.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        inputField = new JTextField(10);
-        JButton insertButton = new JButton("Insertar");
-        JButton getMinButton = new JButton("Obtener Mínimo");
-        JButton removeMinButton = new JButton("Eliminar Mínimo");
-        JButton clearButton = new JButton("Borrar");
-        JButton resetButton = new JButton("Reiniciar");
-
-        outputArea = new JTextArea(10, 30);
-        outputArea.setEditable(false);
-        outputArea.setLineWrap(true);
-
-        JPanel inputPanel = new JPanel();
-        inputPanel.add(new JLabel("Valor:"));
-        inputPanel.add(inputField);
-        inputPanel.add(insertButton);
-        inputPanel.add(getMinButton);
-        inputPanel.add(removeMinButton);
-        inputPanel.add(clearButton);
-        inputPanel.add(resetButton);
-
-        add(instructions, BorderLayout.NORTH);
-        add(inputPanel, BorderLayout.CENTER);
-        add(new JScrollPane(outputArea), BorderLayout.SOUTH);
-
-        insertButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    int value = Integer.parseInt(inputField.getText());
-                    minHeap.insert(value);
-                    inputField.setText("");
-                    outputArea.append("Insertado " + value + " en el heap.\n");
-                    displayHeap();
-                } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(null, "Ingrese un número válido.");
-                }
-            }
-        });
-
-        getMinButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    int min = minHeap.getMin();
-                    outputArea.append("El valor mínimo es: " + min + "\n");
-                } catch (IllegalStateException ex) {
-                    outputArea.append("El heap está vacío.\n");
-                }
-            }
-        });
-
-        removeMinButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    int min = minHeap.removeMin();
-                    outputArea.append("Eliminado el valor mínimo: " + min + "\n");
-                    displayHeap();
-                } catch (IllegalStateException ex) {
-                    outputArea.append("El heap está vacío.\n");
-                }
-            }
-        });
-
-        clearButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                outputArea.setText("");
-            }
-        });
-
-        resetButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                minHeap.clearHeap();
-                outputArea.setText("Heap reiniciado.\n");
-                displayHeap();
-            }
-        });
-    }
-
-    private void displayHeap() {
-        outputArea.append("Estado actual del heap: " + minHeap.getHeap() + "\n");
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                MinHeapGUI gui = new MinHeapGUI();
-                gui.setVisible(true);
-            }
-        });
     }
 }
